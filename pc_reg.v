@@ -12,7 +12,7 @@ always @(posedge clk ) begin
         ce <= `ChipDisable;         // When reset, disable ROM
     end
     else begin
-        ce <= `ChipEnable;
+        ce <= `ChipEnable;          // Otherwise, enable ROM
     end
 end
 

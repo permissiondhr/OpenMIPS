@@ -6,15 +6,15 @@ module regfile(
     // Write port
     input   wire				we,
     input   wire[`RegAddrBus]	waddr,
-    input   wire[`RegBus]		wdata,
+    input   wire[`RegDataBus]    wdata,
     // Read port 1
     input   wire				re1,
     input   wire[`RegAddrBus]	raddr1,
-    output  reg [`RegBus]       rdata1,
+    output  reg [`RegDataBus]   rdata1,
     // Read port 2
     input   wire				re2,
     input   wire[`RegAddrBus]	raddr2,
-    output  reg [`RegBus]       rdata2
+    output  reg [`RegDataBus]   rdata2
 );
 
 reg [`RegBus] regs [`RegNum-1 : 0];                             // Defines RegNum(32) registers with width RegBus(32)
