@@ -3,8 +3,8 @@
 module openmips (
     input   wire                clk,
     input   wire                rst,
-    input   wire[`RegDataBus]   rom_data_i,
-    output  wire[`RegAddrBus]   rom_addr_o,
+    input   wire[`InstDataBus]  rom_data_i,
+    output  wire[`InstAddrBus]  rom_addr_o,
     output  wire                rom_ce_o
 );
 
@@ -115,15 +115,15 @@ id_ex id_ex0(
 	//Inputs from id
 	.id_aluop   (id_aluop_o),
 	.id_alusel  (id_alusel_o),
-	.id_reg1    (id_reg1_o),
-	.id_reg2    (id_reg2_o),
+	.id_reg1_data(id_reg1_o),
+	.id_reg2_data(id_reg2_o),
 	.id_wd      (id_wd_o),
 	.id_wreg    (id_wreg_o),
     // Outputs to ex
 	.ex_aluop   (ex_aluop_i),
 	.ex_alusel  (ex_alusel_i),
-	.ex_reg1    (ex_reg1_i),
-	.ex_reg2    (ex_reg2_i),
+	.ex_reg1_data(ex_reg1_i),
+	.ex_reg2_data(ex_reg2_i),
 	.ex_wd      (ex_wd_i),
 	.ex_wreg    (ex_wreg_i)
 );		
@@ -133,8 +133,8 @@ ex ex0(
     // Inputs from id_ex
 	.aluop_i    (ex_aluop_i),
 	.alusel_i   (ex_alusel_i),
-	.reg1_i     (ex_reg1_i),
-	.reg2_i     (ex_reg2_i),
+	.reg1_data_i     (ex_reg1_i),
+	.reg2_data_i     (ex_reg2_i),
 	.wd_i       (ex_wd_i),
 	.wreg_i     (ex_wreg_i),
     // Outputs to ex_mem

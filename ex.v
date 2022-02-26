@@ -12,7 +12,7 @@ module ex (
     // Outputs to mem module
     output  reg                 wreg_o,
     output  reg  [`RegAddrBus]  wd_o,
-    output  reg  [`RegDataBus]  wdata_o,
+    output  reg  [`RegDataBus]  wdata_o
 );
 
 // reg store logic arithmetic result

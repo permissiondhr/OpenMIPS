@@ -76,8 +76,7 @@ always @ (*) begin
                 reg2_read_o <= `ReadDisable;
                 imm         <= {16'h0, op_immediate};
             end
-            default: begin
-            end
+            default: ;
         endcase
     end
 end

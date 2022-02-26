@@ -17,10 +17,10 @@ module regfile(
     output  reg [`RegDataBus]   rdata2
 );
 
-reg [`RegBus] regs [`RegNum-1 : 0];                             // Defines RegNum(32) registers with width RegBus(32)
+reg [`RegDataBus] regs [`RegNum-1 : 0];                             // Defines RegNum(32) registers with width RegBus(32)
 
 always @(posedge clk ) begin
-    if (rst =  `RstDisable)
+    if (rst == `RstDisable)
         if ((we == `WriteEnable) && (waddr != `RegNumLog2'h0))
             regs[waddr] <= wdata;                               // If write enable & write address !=0, write data to the corresponding address
 end
