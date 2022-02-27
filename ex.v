@@ -7,11 +7,11 @@ module ex (
     input   wire [`AluOpBus]    aluop_i,    
     input   wire [`RegDataBus]  reg1_data_i,
     input   wire [`RegDataBus]  reg2_data_i,
-    input   wire [`RegAddrBus]  wd_i,
+    input   wire [`RegAddrBus]  waddr_i,
     input   wire                wreg_i,
     // Outputs to mem module
     output  reg                 wreg_o,
-    output  reg  [`RegAddrBus]  wd_o,
+    output  reg  [`RegAddrBus]  waddr_o,
     output  reg  [`RegDataBus]  wdata_o
 );
 
@@ -34,7 +34,7 @@ end
 /******************** Select output result according to alusel_i ********************/
 
 always @(*) begin
-    wd_o    <= wd_i;
+    waddr_o <= waddr_i;
     wreg_o  <= wreg_i;
     case (alusel_i)
         `EXE_RES_LOGIC: wdata_o <= logicout;

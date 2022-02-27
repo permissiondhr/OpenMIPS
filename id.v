@@ -8,6 +8,16 @@ module id (
     // Input from regfile module
     input   wire[`RegDataBus]   reg1_data_i,
     input   wire[`RegDataBus]   reg2_data_i,
+
+    // Added to resolve data conflict between id & ex stage
+    input   wire[`RegDataBus]   ex_wdata_i,
+    input   wire[`RegAddrBus]   ex_waddr_i,
+    input   wire                ex_wreg_i,
+    // Added to resolve data conflict between id & mem stage
+    input   wire[`RegDataBus]   mem_wdata_i,
+    input   wire[`RegAddrBus]   mem_waddr_i,
+    input   wire                mem_wreg_i,
+
     // Output to regfile module
     output  reg                 reg1_read_o,
     output  reg                 reg2_read_o,     
@@ -18,7 +28,7 @@ module id (
     output  reg [`AluOpBus]     aluop_o,        // The operation sub_type ALU will do
     output  reg [`RegDataBus]   reg1_data_o,
     output  reg [`RegDataBus]   reg2_data_o,
-    output  reg [`RegAddrBus]   wd_o,
+    output  reg [`RegAddrBus]   waddr_o,
     output  reg                 wreg_o
 );
 
@@ -44,7 +54,7 @@ always @ (*) begin
     if (rst == `RstEnable) begin
         alusel_o    <= `EXE_RES_NOP;
         aluop_o     <= `EXE_NOP_OP;
-        wd_o        <= `NOPRegAddr;
+        waddr_o     <= `NOPRegAddr;
         wreg_o      <= `WriteDisable;
         inst_valid  <= `InstValid;
         reg1_read_o <= `ReadDisable;
@@ -56,7 +66,7 @@ always @ (*) begin
     else begin
         alusel_o    <= `EXE_RES_NOP;
         aluop_o     <= `EXE_NOP_OP;
-        wd_o        <= op_rd;
+        waddr_o     <= op_rd;
         wreg_o      <= `WriteDisable;
         inst_valid  <= `InstInvalid;
         reg1_read_o <= `ReadDisable;
@@ -69,7 +79,7 @@ always @ (*) begin
             `EXE_ORI: begin
                 alusel_o    <= `EXE_RES_LOGIC;  // Logic operation
                 aluop_o     <= `EXE_OR_OP;      // "OR" operation
-                wd_o        <= op_rt;           // Writes the result to rt
+                waddr_o     <= op_rt;           // Writes the result to rt
                 wreg_o      <= `WriteEnable;
                 inst_valid  <= `InstValid;
                 reg1_read_o <= `ReadEnable;     // rs read enable

@@ -6,7 +6,7 @@ module regfile(
     // Write port
     input   wire				we,
     input   wire[`RegAddrBus]	waddr,
-    input   wire[`RegDataBus]    wdata,
+    input   wire[`RegDataBus]   wdata,
     // Read port 1
     input   wire				re1,
     input   wire[`RegAddrBus]	raddr1,
@@ -35,7 +35,7 @@ always @(* ) begin                                              // Read circuit1
             if (re1 == `ReadEnable) begin
                 if ((raddr1 == waddr) && (we == `WriteEnable))
                     rdata1 <= wdata;                            // When read address equals write address and write enable, read data1 equals write data
-                else
+                else                                            // This method will solve the data conflict between wb & id stage
                     rdata1 <= regs[raddr1];                     // Normal read
             end
             else

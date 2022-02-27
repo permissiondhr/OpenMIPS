@@ -8,7 +8,7 @@ module id_ex (
     input   wire [`AluOpBus]    id_aluop,        // The operation sub_type ALU will do
     input   wire [`RegDataBus]  id_reg1_data,
     input   wire [`RegDataBus]  id_reg2_data,
-    input   wire [`RegAddrBus]  id_wd,
+    input   wire [`RegAddrBus]  id_waddr,
     input   wire                id_wreg,
 
     // Outputs to ex module
@@ -16,7 +16,7 @@ module id_ex (
     output  reg [`AluOpBus]     ex_aluop,    
     output  reg [`RegDataBus]   ex_reg1_data,
     output  reg [`RegDataBus]   ex_reg2_data,
-    output  reg [`RegAddrBus]   ex_wd,
+    output  reg [`RegAddrBus]   ex_waddr,
     output  reg                 ex_wreg
 );
 
@@ -26,7 +26,7 @@ always @ (posedge clk) begin
         ex_aluop        <= `EXE_NOP_OP;
         ex_reg1_data    <= `ZeroWord;
         ex_reg2_data    <= `ZeroWord;
-        ex_wd           <= `NOPRegAddr;
+        ex_waddr        <= `NOPRegAddr;
         ex_wreg         <= `WriteDisable;
     end 
     else begin		
@@ -34,7 +34,7 @@ always @ (posedge clk) begin
         ex_aluop        <= id_aluop;
         ex_reg1_data    <= id_reg1_data;
         ex_reg2_data    <= id_reg2_data;
-        ex_wd           <= id_wd;
+        ex_waddr        <= id_waddr;
         ex_wreg         <= id_wreg;		
     end
 end
