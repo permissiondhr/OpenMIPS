@@ -1,2 +1,6 @@
 *.vcd
 a.out
+*.bin
+*.data
+*.o
+*.om

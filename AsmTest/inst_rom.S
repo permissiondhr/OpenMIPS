@@ -3,7 +3,7 @@
    .set noat               # Free to use $1(at) register
 _start:
    ori $1,$0,0x1100        # $1 = $0 | 0x1100 = 0x1100
-   ori $2,$0,0x0020        # $2 = $0 | 0x0020 = 0x0020
-   ori $3,$0,0xff00        # $3 = $0 | 0xff00 = 0xff00
-   ori $4,$0,0xffff        # $4 = $0 | 0xffff = 0xffff
+   ori $1,$1,0x0020        # $1 = $1 | 0x0020 = 0x1120
+   ori $1,$1,0x4400        # $1 = $1 | 0x4400 = 0x5520
+   ori $1,$1,0x0044        # $1 = $1 | 0x0044 = 0x5564
 

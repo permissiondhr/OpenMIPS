@@ -96,8 +96,16 @@ always @(*) begin
     if (rst == `RstEnable)
         reg1_data_o <= `ZeroWord;
     else begin
-        if (reg1_read_o == `ReadEnable)
-            reg1_data_o <= reg1_data_i;
+        if (reg1_read_o == `ReadEnable) begin
+            if ((reg1_addr_o == ex_waddr_i) && (ex_wreg_i == `WriteEnable))         // id & ex data conflict
+                reg1_data_o <= ex_wdata_i;                                          // using data from ex stage
+            else begin
+                if ((reg1_addr_o == mem_waddr_i) && (mem_wreg_i == `WriteEnable))   // id & mem data conflict
+                    reg1_data_o <= mem_wdata_i;                                     // using data from mem stage
+                else
+                    reg1_data_o <= reg1_data_i;                                     // normal read data out
+            end
+        end
         else begin
             if (reg1_read_o == `ReadDisable)
                 reg1_data_o <= imm;
@@ -112,8 +120,16 @@ always @(*) begin
     if (rst == `RstEnable)
         reg2_data_o <= `ZeroWord;
     else begin
-        if (reg2_read_o == `ReadEnable)
-            reg2_data_o <= reg2_data_i;
+        if (reg2_read_o == `ReadEnable) begin
+            if ((reg2_addr_o == ex_waddr_i) && (ex_wreg_i == `WriteEnable))         // id & ex data conflict
+                reg2_data_o <= ex_wdata_i;                                          // using data from ex stage
+            else begin
+                if ((reg2_addr_o == mem_waddr_i) && (mem_wreg_i == `WriteEnable))   // id & mem data conflict
+                    reg2_data_o <= mem_wdata_i;                                     // using data from mem stage
+                else
+                    reg2_data_o <= reg2_data_i;                                     // normal read data out
+            end
+        end
         else begin
             if (reg2_read_o == `ReadDisable)
                 reg2_data_o <= imm;
