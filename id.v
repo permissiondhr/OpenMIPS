@@ -53,7 +53,7 @@ reg                 inst_valid;
 always @ (*) begin
     if (rst == `RstEnable) begin
         alusel_o    <= `EXE_RES_NOP;
-        aluop_o     <= `EXE_NOP_OP;
+        aluop_o     <= `EXE_OP_NOP;
         waddr_o     <= `NOPRegAddr;
         wreg_o      <= `WriteDisable;
         inst_valid  <= `InstValid;
@@ -65,26 +65,176 @@ always @ (*) begin
     end
     else begin
         alusel_o    <= `EXE_RES_NOP;
-        aluop_o     <= `EXE_NOP_OP;
-        waddr_o     <= op_rd;
+        aluop_o     <= `EXE_OP_NOP;
+        waddr_o     <=  op_rd;
         wreg_o      <= `WriteDisable;
         inst_valid  <= `InstInvalid;
         reg1_read_o <= `ReadDisable;
         reg2_read_o <= `ReadDisable;
-        reg1_addr_o <= op_rs;                   // Default: read rs from read port1
-        reg2_addr_o <= op_rt;                   // Default: read rt from read port2
+        reg1_addr_o <=  op_rs;                  // Default: read rs from read port1
+        reg2_addr_o <=  op_rt;                  // Default: read rt from read port2
         imm         <= `ZeroWord;
 
         case (op_opcode)                        // ORI instruction
-            `EXE_ORI: begin
-                alusel_o    <= `EXE_RES_LOGIC;  // Logic operation
-                aluop_o     <= `EXE_OR_OP;      // "OR" operation
-                waddr_o     <= op_rt;           // Writes the result to rt
+            `EXE_SPECIAL_INST: begin
+                case (op_function)
+                    `EXE_SLL: begin
+                        if (op_rs == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_SHIFT;
+                            aluop_o     <= `EXE_OP_SLL;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadDisable;
+                            reg2_read_o <= `ReadEnable;
+                            imm         <=  {27'h0, op_sa};
+                        end
+                    end
+                    `EXE_SRL: begin
+                        if (op_rs == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_SHIFT;
+                            aluop_o     <= `EXE_OP_SRL;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadDisable;
+                            reg2_read_o <= `ReadEnable;
+                            imm         <=  {27'h0, op_sa};
+                        end
+                    end
+                    `EXE_SRA: begin
+                        if (op_rs == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_SHIFT;
+                            aluop_o     <= `EXE_OP_SRA;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadDisable;
+                            reg2_read_o <= `ReadEnable;
+                            imm         <=  {27'h0, op_sa};
+                        end
+                    end
+                    `EXE_SLLV: begin
+                        if (op_sa == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_SHIFT;
+                            aluop_o     <= `EXE_OP_SLL;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end 
+                    `EXE_SRLV: begin
+                        if (op_sa == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_SHIFT;
+                            aluop_o     <= `EXE_OP_SRL;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end 
+                    `EXE_SRAV: begin
+                        if (op_sa == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_SHIFT;
+                            aluop_o     <= `EXE_OP_SRA;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_SYNC: begin                                // Not used
+                        if ({op_rs, op_rt, op_rd} == 15'h0000) begin
+                            alusel_o    <= `EXE_RES_NOP;
+                            aluop_o     <= `EXE_OP_NOP;
+                            wreg_o      <= `WriteDisable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadDisable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end 
+                    `EXE_AND: begin
+                        if (op_sa == 5'b0000) begin
+                            alusel_o    <= `EXE_RES_LOGIC;
+                            aluop_o     <= `EXE_OP_AND;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_OR: begin
+                        if (op_sa == 5'b0000) begin
+                            alusel_o    <= `EXE_RES_LOGIC;
+                            aluop_o     <= `EXE_OP_OR;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_XOR: begin
+                        if (op_sa == 5'b0000) begin
+                            alusel_o    <= `EXE_RES_LOGIC;
+                            aluop_o     <= `EXE_OP_XOR;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_NOR: begin
+                        if (op_sa == 5'b0000) begin
+                            alusel_o    <= `EXE_RES_LOGIC;
+                            aluop_o     <= `EXE_OP_NOR;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end  
+                    default: ;
+                endcase
+            end
+            `EXE_ANDI: begin
+                alusel_o    <= `EXE_RES_LOGIC;
+                aluop_o     <= `EXE_OP_AND;
+                waddr_o     <=  op_rt;
                 wreg_o      <= `WriteEnable;
                 inst_valid  <= `InstValid;
-                reg1_read_o <= `ReadEnable;     // rs read enable
+                reg1_read_o <= `ReadEnable;
                 reg2_read_o <= `ReadDisable;
                 imm         <= {16'h0, op_immediate};
+            end
+            `EXE_ORI: begin
+                alusel_o    <= `EXE_RES_LOGIC;
+                aluop_o     <= `EXE_OP_OR;
+                waddr_o     <=  op_rt;
+                wreg_o      <= `WriteEnable;
+                inst_valid  <= `InstValid;
+                reg1_read_o <= `ReadEnable;
+                reg2_read_o <= `ReadDisable;
+                imm         <= {16'h0, op_immediate};
+            end
+            `EXE_XORI: begin
+                alusel_o    <= `EXE_RES_LOGIC;
+                aluop_o     <= `EXE_OP_XOR;
+                waddr_o     <=  op_rt;
+                wreg_o      <= `WriteEnable;
+                inst_valid  <= `InstValid;
+                reg1_read_o <= `ReadEnable;
+                reg2_read_o <= `ReadDisable;
+                imm         <= {16'h0, op_immediate};
+            end
+            `EXE_LUI: begin
+                if (op_rs == 5'b00000) begin            // For LUI instruction, rs must be 0
+                    alusel_o    <= `EXE_RES_LOGIC;
+                    aluop_o     <= `EXE_OP_OR;          // rs (which is '0') | (imm << 16)
+                    waddr_o     <=  op_rt;
+                    wreg_o      <= `WriteEnable;
+                    inst_valid  <= `InstValid;
+                    reg1_read_o <= `ReadEnable;
+                    reg2_read_o <= `ReadDisable;
+                    imm         <= {op_immediate, 16'h0}; 
+                end
             end
             default: ;
         endcase

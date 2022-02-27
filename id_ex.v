@@ -23,7 +23,7 @@ module id_ex (
 always @ (posedge clk) begin
     if (rst == `RstEnable) begin
         ex_alusel       <= `EXE_RES_NOP;
-        ex_aluop        <= `EXE_NOP_OP;
+        ex_aluop        <= `EXE_OP_NOP;
         ex_reg1_data    <= `ZeroWord;
         ex_reg2_data    <= `ZeroWord;
         ex_waddr        <= `NOPRegAddr;
