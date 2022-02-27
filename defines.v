@@ -100,7 +100,7 @@
 `define EXE_REGIMM_INST     6'b000001
 `define EXE_ANDI            6'b001100
 `define EXE_ORI             6'b001101
-`define EXE_XORI            6'b001101
+`define EXE_XORI            6'b001110
 `define EXE_LUI             6'b001111
 `define EXE_PREF            6'b110011
 // Defined by FUNCTION   
