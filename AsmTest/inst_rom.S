@@ -1,19 +1,24 @@
-	.org 0x0                # Program starts from 0x0
-   .global _start          # Set global symbol
-   .set noat               # Free to use $1(at) register
+   .org 0x0
+   .set noat
+   .global _start
 _start:
-   lui   $2,0x0404
-   ori   $2,$2,0x0404
-   ori   $7,$0,0x7
-   ori   $5,$0,0x5
-   ori   $8,$0,0x8
-   sync
-   sll   $2,$2,8    # $2 = 0x40404040 sll 8  = 0x04040400
-   sllv  $2,$2,$7   # $2 = 0x04040400 sll 7  = 0x02020000
-   srl   $2,$2,8    # $2 = 0x02020000 srl 8  = 0x00020200
-   srlv  $2,$2,$5   # $2 = 0x00020200 srl 5  = 0x00001010
-   nop
-   sll   $2,$2,19   # $2 = 0x00001010 sll 19 = 0x80800000
-   ssnop
-   sra   $2,$2,16   # $2 = 0x80800000 sra 16 = 0xffff8080
-   srav  $2,$2,$8   # $2 = 0xffff8080 sra 8  = 0xffffff80
+   lui $1,0x0000          # $1 = 0x00000000
+   lui $2,0xffff          # $2 = 0xffff0000
+   lui $3,0x0505          # $3 = 0x05050000
+   lui $4,0x0000          # $4 = 0x00000000 
+
+   movz $4,$2,$1          # $4 = 0xffff0000
+   movn $4,$3,$1          # $4 = 0xffff0000
+   movn $4,$3,$2          # $4 = 0x05050000
+   movz $4,$2,$3          # $4 = 0x05050000
+
+   mthi $0                # hi = 0x00000000
+   mthi $2                # hi = 0xffff0000
+   mthi $3                # hi = 0x05050000
+   mfhi $4                # $4 = 0x05050000
+
+   mtlo $3                # li = 0x05050000
+   mtlo $2                # li = 0xffff0000
+   mtlo $1                # li = 0x00000000
+   mflo $4                # $4 = 0x00000000        
+

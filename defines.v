@@ -128,12 +128,19 @@
 `define EXE_RES_NOP         3'b000
 `define EXE_RES_LOGIC       3'b001
 `define EXE_RES_SHIFT       3'b010
+`define EXE_RES_MOVE        3'b011
 // AluOp
 `define EXE_OP_NOP          8'b00000000
 `define EXE_OP_SSNOP        8'b00000000
 `define EXE_OP_SLL          8'b00000000
 `define EXE_OP_SRL          8'b00000010
 `define EXE_OP_SRA          8'b00000011
+`define EXE_OP_MOVZ         8'b00001010
+`define EXE_OP_MOVN         8'b00001011
+`define EXE_OP_MFHI         8'b00010000
+`define EXE_OP_MTHI         8'b00010001
+`define EXE_OP_MFLO         8'b00010010
+`define EXE_OP_MTLO         8'b00010011
 `define EXE_OP_SYNC         8'b00001111
 `define EXE_OP_AND          8'b00100100
 `define EXE_OP_OR           8'b00100101

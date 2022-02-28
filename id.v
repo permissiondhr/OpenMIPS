@@ -75,7 +75,7 @@ always @ (*) begin
         reg2_addr_o <=  op_rt;                  // Default: read rt from read port2
         imm         <= `ZeroWord;
 
-        case (op_opcode)                        // ORI instruction
+        case (op_opcode)
             `EXE_SPECIAL_INST: begin
                 case (op_function)
                     `EXE_SLL: begin
@@ -139,6 +139,72 @@ always @ (*) begin
                             inst_valid  <= `InstValid;
                             reg1_read_o <= `ReadEnable;
                             reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_MOVZ: begin
+                        if (op_sa == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_MOVE;
+                            aluop_o     <= `EXE_OP_MOVZ;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            if (reg2_data_o == `ZeroWord)                            
+                                wreg_o  <= `WriteEnable;
+                            else
+                                wreg_o  <= `WriteDisable;
+                        end
+                    end
+                    `EXE_MOVN: begin
+                        if (op_sa == 5'b00000) begin
+                            alusel_o    <= `EXE_RES_MOVE;
+                            aluop_o     <= `EXE_OP_MOVN;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            if (reg2_data_o != `ZeroWord)                            
+                                wreg_o  <= `WriteEnable;
+                            else
+                                wreg_o  <= `WriteDisable;
+                        end
+                    end
+                    `EXE_MFHI: begin
+                        if ((op_sa == 5'b00000) && (op_rs == 5'b00000) && (op_rt == 5'b00000)) begin
+                            alusel_o    <= `EXE_RES_MOVE;
+                            aluop_o     <= `EXE_OP_MFHI;
+                            reg1_read_o <= `ReadDisable;
+                            reg2_read_o <= `ReadDisable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
+                    `EXE_MTHI: begin
+                        if ((op_sa == 5'b00000) && (op_rd == 5'b00000) && (op_rt == 5'b00000)) begin
+                            //alusel_o    <= `EXE_RES_MOVE;
+                            aluop_o     <= `EXE_OP_MTHI;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadDisable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteDisable;
+                        end
+                    end
+                    `EXE_MFLO: begin
+                        if ((op_sa == 5'b00000) && (op_rs == 5'b00000) && (op_rt == 5'b00000)) begin
+                            alusel_o    <= `EXE_RES_MOVE;
+                            aluop_o     <= `EXE_OP_MFLO;
+                            reg1_read_o <= `ReadDisable;
+                            reg2_read_o <= `ReadDisable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
+                    `EXE_MTLO: begin
+                        if ((op_sa == 5'b00000) && (op_rd == 5'b00000) && (op_rt == 5'b00000)) begin
+                            //alusel_o    <= `EXE_RES_MOVE;
+                            aluop_o     <= `EXE_OP_MTLO;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadDisable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteDisable;
                         end
                     end
                     `EXE_SYNC: begin                                // Not used
