@@ -51,7 +51,7 @@ always @(* ) begin                                              // Read circuit2
         if (raddr2 == `RegNumLog2'h0)
             rdata2 <= `ZeroWord;
         else begin
-            if (re1 == `ReadEnable) begin
+            if (re2 == `ReadEnable) begin
                 if ((raddr2 == waddr) && (we == `WriteEnable))
                     rdata2 <= wdata;
                 else
