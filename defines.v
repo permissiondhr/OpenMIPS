@@ -79,7 +79,7 @@
 // 2:0      000     001     010     011     100     101     110     111
 // 5:3
 // 000      SLL             SRL     SRA     SLLV            SRLV    SRAV
-// 001      JR      JALR                    SYSCALL BREAK           SYNC
+// 001      JR      JALR    MOVZ    MOVN    SYSCALL BREAK           SYNC
 // 010      MFHI    MTHI    MFLO    MTLO
 // 011      MULT    MULTU   DIV     DIVU
 // 100      ADD     ADDU    SUB     SUBU    AND     OR      XOR     NOR
@@ -106,14 +106,20 @@
 // Defined by FUNCTION   
 `define EXE_NOP             6'b000000   // NOP:   32'h00000000 = sll $0, $0, 0
 `define EXE_SSNOP           6'b000000   // SSNOP: 32'h00000040 = sll $0, $0, 1
-`define EXE_SLL             6'b000000
+`define EXE_SLL             6'b000000   // Shift instructions
 `define EXE_SRL             6'b000010
 `define EXE_SRA             6'b000011
 `define EXE_SLLV            6'b000100 
 `define EXE_SRLV            6'b000110 
 `define EXE_SRAV            6'b000111
-`define EXE_SYNC            6'b001111 
-`define EXE_AND             6'b100100
+`define EXE_MOVZ            6'b001010   // Move instructions
+`define EXE_MOVN            6'b001011
+`define EXE_MFHI            6'b010000
+`define EXE_MTHI            6'b010001
+`define EXE_MFLO            6'b010010
+`define EXE_MTLO            6'b010011
+`define EXE_SYNC            6'b001111   // Sync instructions
+`define EXE_AND             6'b100100   // Logic instructions
 `define EXE_OR              6'b100101
 `define EXE_XOR             6'b100110
 `define EXE_NOR             6'b100111
