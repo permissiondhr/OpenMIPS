@@ -66,9 +66,9 @@ always @ (*) begin
     else begin
         alusel_o    <= `EXE_RES_NOP;
         aluop_o     <= `EXE_OP_NOP;
-        waddr_o     <=  op_rd;
-        wreg_o      <= `WriteDisable;
-        inst_valid  <= `InstInvalid;
+        waddr_o     <=  op_rd;                  // Default: write to rd register
+        wreg_o      <= `WriteDisable;           // Default: write disable
+        inst_valid  <= `InstInvalid;            // Default: instruction invalid
         reg1_read_o <= `ReadDisable;
         reg2_read_o <= `ReadDisable;
         reg1_addr_o <=  op_rs;                  // Default: read rs from read port1
@@ -167,6 +167,16 @@ always @ (*) begin
                                 wreg_o  <= `WriteDisable;
                         end
                     end
+                    `EXE_SYNC: begin                                // Not used
+                        if ({op_rs, op_rt, op_rd} == 15'h0000) begin
+                            alusel_o    <= `EXE_RES_NOP;
+                            aluop_o     <= `EXE_OP_NOP;
+                            wreg_o      <= `WriteDisable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadDisable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end 
                     `EXE_MFHI: begin
                         if ((op_sa == 5'b00000) && (op_rs == 5'b00000) && (op_rt == 5'b00000)) begin
                             alusel_o    <= `EXE_RES_MOVE;
@@ -207,16 +217,84 @@ always @ (*) begin
                             wreg_o      <= `WriteDisable;
                         end
                     end
-                    `EXE_SYNC: begin                                // Not used
-                        if ({op_rs, op_rt, op_rd} == 15'h0000) begin
-                            alusel_o    <= `EXE_RES_NOP;
-                            aluop_o     <= `EXE_OP_NOP;
-                            wreg_o      <= `WriteDisable;
-                            inst_valid  <= `InstValid;
-                            reg1_read_o <= `ReadDisable;
+                    `EXE_MULT: begin
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_MULT;
+                            reg1_read_o <= `ReadEnable;
                             reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteDisable;
                         end
-                    end 
+                    end
+                    `EXE_MULTU: begin
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_MULTU;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteDisable;
+                        end
+                    end
+                    `EXE_ADD: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_ARITHMETIC;
+                            aluop_o     <= `EXE_OP_ADD;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
+                    `EXE_ADDU: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_ARITHMETIC;
+                            aluop_o     <= `EXE_OP_ADDU;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
+                    `EXE_SUB: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_ARITHMETIC;
+                            aluop_o     <= `EXE_OP_SUB;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
+                    `EXE_SUBU: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_ARITHMETIC;
+                            aluop_o     <= `EXE_OP_SUBU;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
+                    `EXE_SLT: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_ARITHMETIC;
+                            aluop_o     <= `EXE_OP_SLT;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
+                    `EXE_SLTU: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_ARITHMETIC;
+                            aluop_o     <= `EXE_OP_SLTU;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteEnable;
+                        end
+                    end
                     `EXE_AND: begin
                         if (op_sa == 5'b0000) begin
                             alusel_o    <= `EXE_RES_LOGIC;
@@ -301,6 +379,81 @@ always @ (*) begin
                     reg2_read_o <= `ReadDisable;
                     imm         <= {op_immediate, 16'h0}; 
                 end
+            end
+            `EXE_ADDI: begin
+                alusel_o    <= `EXE_RES_ARITHMETIC;
+                aluop_o     <= `EXE_OP_ADD;
+                waddr_o     <=  op_rt;
+                wreg_o      <= `WriteEnable;
+                inst_valid  <= `InstValid;
+                reg1_read_o <= `ReadEnable;
+                reg2_read_o <= `ReadDisable;
+                imm         <= {{16{op_immediate[15]}}, op_immediate};
+            end
+            `EXE_ADDIU: begin
+                alusel_o    <= `EXE_RES_ARITHMETIC;
+                aluop_o     <= `EXE_OP_ADDU;
+                waddr_o     <=  op_rt;
+                wreg_o      <= `WriteEnable;
+                inst_valid  <= `InstValid;
+                reg1_read_o <= `ReadEnable;
+                reg2_read_o <= `ReadDisable;
+                imm         <= {{16{op_immediate[15]}}, op_immediate};
+            end
+            `EXE_SLTI: begin
+                alusel_o    <= `EXE_RES_ARITHMETIC;
+                aluop_o     <= `EXE_OP_SLT;
+                waddr_o     <=  op_rt;
+                wreg_o      <= `WriteEnable;
+                inst_valid  <= `InstValid;
+                reg1_read_o <= `ReadEnable;
+                reg2_read_o <= `ReadDisable;
+                imm         <= {{16{op_immediate[15]}}, op_immediate};
+            end
+            `EXE_SLTIU: begin
+                alusel_o    <= `EXE_RES_ARITHMETIC;
+                aluop_o     <= `EXE_OP_SLTU;
+                waddr_o     <=  op_rt;
+                wreg_o      <= `WriteEnable;
+                inst_valid  <= `InstValid;
+                reg1_read_o <= `ReadEnable;
+                reg2_read_o <= `ReadDisable;
+                imm         <= {{16{op_immediate[15]}}, op_immediate};
+            end
+            `EXE_SPECIAL2_INST: begin
+                case (op_function)
+                    `EXE_CLZ: begin                             // CLZ has 2 versions: pre-release6, release6
+                        if (op_sa == 5'h00) begin               // Pre-release6: 011100 rs rt     rd 00000 100000
+                            alusel_o    <= `EXE_RES_ARITHMETIC; // Release6:     000000 rs 000000 rd 00001 010000
+                            aluop_o     <= `EXE_OP_CLZ;         
+                            wreg_o      <= `WriteEnable;        
+                            inst_valid  <= `InstValid;          
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadDisable;
+                        end
+                    end
+                    `EXE_CLO: begin                             // CLO has 2 versions: pre-release6, release6
+                        if (op_sa == 5'h00) begin               // Pre-release6: 011100 rs rt     rd 00000 100001
+                            alusel_o    <= `EXE_RES_ARITHMETIC; // Release6:     000000 rs 000000 rd 00001 010001
+                            aluop_o     <= `EXE_OP_CLO;         
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadDisable;
+                        end
+                    end
+                    `EXE_MUL: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_MUL;
+                            aluop_o     <= `EXE_OP_MUL;        
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    default: ;
+                endcase
             end
             default: ;
         endcase
