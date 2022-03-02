@@ -34,6 +34,11 @@ wire[`RegDataBus]   ex_wdata_o;
 wire                ex_whilo_o;
 wire[`RegDataBus]   ex_hi_o;
 wire[`RegDataBus]   ex_lo_o;
+wire[`DoubleRegDataBus] ex_hilo_i;
+wire[1:0]               ex_cnt_i;
+wire[`DoubleRegDataBus] ex_hilo_o;
+wire[1:0]               ex_cnt_o;
+
 // EX/MEM & MEM
 wire                mem_wreg_i;
 wire[`RegAddrBus]   mem_waddr_i;
@@ -65,10 +70,16 @@ wire[`RegAddrBus]   reg2_addr;
 // HILO & EX
 wire[`RegDataBus]   hi_data;
 wire[`RegDataBus]   lo_data;
+// Ctrl module
+wire        stallreq_from_id;
+wire        stallreq_from_ex;
+wire [5:0]  stall;
 
 pc_reg pc_reg0(
     .clk    (clk),
     .rst    (rst),
+    // Input from ctrl module
+    .stall  (stall),
     // Outputs to ROM
     .pc     (pc),
     .ce     (rom_ce_o)		
@@ -82,6 +93,8 @@ if_id if_id0(
     // Inputs from pc_reg
     .if_pc  (pc),
     .if_inst(rom_data_i),
+    // Input from ctrl module
+    .stall  (stall),
     // Outputs to id
     .id_pc  (id_pc_i),
     .id_inst(id_inst_i)      	
@@ -113,7 +126,8 @@ id id0(
     .reg1_data_o(id_reg1_o),
     .reg2_data_o(id_reg2_o),
     .waddr_o    (id_waddr_o),
-    .wreg_o     (id_wreg_o)
+    .wreg_o     (id_wreg_o),
+    .stallreq   (stallreq_from_id)
 );
 
 regfile regfile1(
@@ -152,6 +166,8 @@ id_ex id_ex0(
     .id_reg2_data(id_reg2_o),
     .id_waddr   (id_waddr_o),
     .id_wreg    (id_wreg_o),
+    // Input from ctrl module
+    .stall  (stall),
     // Outputs to ex
     .ex_aluop   (ex_aluop_i),
     .ex_alusel  (ex_alusel_i),
@@ -185,7 +201,13 @@ ex ex0(
     .wdata_o    (ex_wdata_o),
     .whilo_o    (ex_whilo_o),
     .hi_o       (ex_hi_o),
-    .lo_o       (ex_lo_o)
+    .lo_o       (ex_lo_o),
+    // MADD/MSUB instruction signal
+    .hilo_temp_i(ex_hilo_i),
+    .cnt_i      (ex_cnt_i),
+    .hilo_temp_o(ex_hilo_o),
+    .cnt_o      (ex_cnt_o),
+    .stallreq   (stallreq_from_ex)
 );
 
 ex_mem ex_mem0(
@@ -198,6 +220,13 @@ ex_mem ex_mem0(
     .ex_whilo   (ex_whilo_o),  
     .ex_hi      (ex_hi_o),
     .ex_lo      (ex_lo_o),
+    // MADD/MSUB instruction signal
+    .hilo_i     (ex_hilo_o),
+    .cnt_i      (ex_cnt_o),
+    .hilo_o     (ex_hilo_i),
+    .cnt_o      (ex_cnt_i),
+    // Input from ctrl module
+    .stall      (stall),
     // Outputs to mem
     .mem_waddr  (mem_waddr_i),
     .mem_wreg   (mem_wreg_i),
@@ -235,6 +264,8 @@ mem_wb mem_wb0(
     .mem_whilo  (mem_whilo_o),
     .mem_hi     (mem_hi_o),
     .mem_lo     (mem_lo_o),
+    // Input from ctrl module
+    .stall  (stall),
     // Outputs to regfile
     .wb_waddr   (wb_waddr_i),
     .wb_wreg    (wb_wreg_i),
@@ -242,6 +273,13 @@ mem_wb mem_wb0(
     .wb_whilo   (wb_whilo_i),
     .wb_hi      (wb_hi_i),
     .wb_lo      (wb_lo_i)
+);
+
+ctrl ctrl0(
+    .rst                (rst),
+    .stallreq_from_id   (stallreq_from_id),
+    .stallreq_from_ex   (stallreq_from_ex),
+    .stall              (stall) 
 );
 
 endmodule

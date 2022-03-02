@@ -29,7 +29,8 @@ module id (
     output  reg [`RegDataBus]   reg1_data_o,
     output  reg [`RegDataBus]   reg2_data_o,
     output  reg [`RegAddrBus]   waddr_o,
-    output  reg                 wreg_o
+    output  reg                 wreg_o,
+    output  wire                stallreq
 );
 
 // Instruction decode wires
@@ -48,6 +49,8 @@ reg [`RegDataBus]   imm;
 // Show the instruction is valid or not
 reg                 inst_valid;
 
+// Not stall the pipline
+assign stallreq = 1'b0;
 /******************** Instruction Decode ********************/
 
 always @ (*) begin
@@ -217,7 +220,7 @@ always @ (*) begin
                             wreg_o      <= `WriteDisable;
                         end
                     end
-                    `EXE_MULT: begin
+                    `EXE_MULT: begin                                // This instruction do not write GPR, so alusel=NOP
                         if ({op_rd, op_sa} == 10'h000) begin
                             aluop_o     <= `EXE_OP_MULT;
                             reg1_read_o <= `ReadEnable;
@@ -226,7 +229,7 @@ always @ (*) begin
                             wreg_o      <= `WriteDisable;
                         end
                     end
-                    `EXE_MULTU: begin
+                    `EXE_MULTU: begin                               // This instruction do not write GPR, so alusel=NOP
                         if ({op_rd, op_sa} == 10'h000) begin
                             aluop_o     <= `EXE_OP_MULTU;
                             reg1_read_o <= `ReadEnable;
@@ -422,6 +425,52 @@ always @ (*) begin
             end
             `EXE_SPECIAL2_INST: begin
                 case (op_function)
+                    `EXE_MADD: begin                            // This instruction do not write GPR, so alusel=NOP
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_MADD;
+                            wreg_o      <= `WriteDisable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_MADDU: begin                           // This instruction do not write GPR, so alusel=NOP
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_MADDU;
+                            wreg_o      <= `WriteDisable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_MUL: begin
+                        if (op_sa == 5'h00) begin
+                            alusel_o    <= `EXE_RES_MUL;
+                            aluop_o     <= `EXE_OP_MUL;
+                            wreg_o      <= `WriteEnable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_MSUB: begin
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_MSUB;
+                            wreg_o      <= `WriteDisable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
+                    `EXE_MSUBU: begin
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_MSUBU;
+                            wreg_o      <= `WriteDisable;
+                            inst_valid  <= `InstValid;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                        end
+                    end
                     `EXE_CLZ: begin                             // CLZ has 2 versions: pre-release6, release6
                         if (op_sa == 5'h00) begin               // Pre-release6: 011100 rs rt     rd 00000 100000
                             alusel_o    <= `EXE_RES_ARITHMETIC; // Release6:     000000 rs 000000 rd 00001 010000
@@ -440,16 +489,6 @@ always @ (*) begin
                             inst_valid  <= `InstValid;
                             reg1_read_o <= `ReadEnable;
                             reg2_read_o <= `ReadDisable;
-                        end
-                    end
-                    `EXE_MUL: begin
-                        if (op_sa == 5'h00) begin
-                            alusel_o    <= `EXE_RES_MUL;
-                            aluop_o     <= `EXE_OP_MUL;        
-                            wreg_o      <= `WriteEnable;
-                            inst_valid  <= `InstValid;
-                            reg1_read_o <= `ReadEnable;
-                            reg2_read_o <= `ReadEnable;
                         end
                     end
                     default: ;

@@ -20,19 +20,28 @@ module ex (
     input   wire                wb_whilo_i,
     input   wire[`RegDataBus]   wb_hi_i,
     input   wire[`RegDataBus]   wb_lo_i,
+    // Inputs used in MADD/MADDU/MSUB/MSUBU
+    input   wire[`DoubleRegDataBus] hilo_temp_i,
+    input   wire[1:0]           cnt_i,
     // Outputs to ex/mem module
     output  reg                 wreg_o,
     output  reg [`RegAddrBus]   waddr_o,
     output  reg [`RegDataBus]   wdata_o,
     output  reg                 whilo_o,
     output  reg [`RegDataBus]   hi_o,
-    output  reg [`RegDataBus]   lo_o
+    output  reg [`RegDataBus]   lo_o,
+    // Outputs used in MADD/MADDU/MSUB/MSUBU
+    output  reg [`DoubleRegDataBus] hilo_temp_o,
+    output  reg [1:0]           cnt_o,
+    // Output to ctrl module
+    output  reg                 stallreq
 );
 
 reg [`RegDataBus] logic_res;    // Store logic arithmetic result
 reg [`RegDataBus] shift_res;    // Store shift arithmetic result
 reg [`RegDataBus] move_res;     // Store move arithmetic result
 reg [`RegDataBus] arithmetic_res;
+reg [`DoubleRegDataBus] mul_res;
 reg [`RegDataBus] HI;           // Store HI value
 reg [`RegDataBus] LO;           // Store LO value
 
@@ -42,11 +51,16 @@ wire[`RegDataBus] result_sum;   // Add operation result
 wire[`RegDataBus] opdata1_mult;
 wire[`RegDataBus] opdata2_mult;
 wire[`DoubleRegDataBus] hilo_temp;
-reg [`DoubleRegDataBus] mul_res;
+reg [`DoubleRegDataBus] hilo_temp1;             // Used in Second clk cycle of MADD/MSUB instructions
+reg                     stallreq_for_madd_msub;
 wire              ov_sum;       // Store overflow information
 wire              reg1_eq_reg2; // Oprand1 equals oprand2
 wire              reg1_lt_reg2; // Oprand1 less than oprand2
 
+
+always @(*) begin
+    stallreq <= stallreq_for_madd_msub;
+end
 
 /******************** Do the computation according to aluop_i ********************/
 
@@ -143,10 +157,65 @@ always @(*) begin
                 hi_o    <= HI;
                 lo_o    <= reg1_data_i;
             end
+            `EXE_OP_MADD, `EXE_OP_MADDU, `EXE_OP_MSUB, `EXE_OP_MSUBU: begin
+                whilo_o <= `WriteEnable;
+                hi_o    <= hilo_temp1[63:32];
+                lo_o    <= hilo_temp1[31: 0];
+            end
             default: begin              // Write disable, HI/LO stays the same
                 whilo_o <= `WriteDisable;
                 hi_o    <= `ZeroWord;
                 lo_o    <= `ZeroWord;
+            end
+        endcase
+    end
+end
+
+// MADD/MADDU/MSUB/MSUBU
+always @(*) begin
+    if (rst == `RstEnable) begin
+        hilo_temp_o <= {`ZeroWord, `ZeroWord};
+        cnt_o       <= 2'b00;
+        stallreq_for_madd_msub <= `NoStop;
+    end
+    else begin
+        case (aluop_i)
+            `EXE_OP_MADD, `EXE_OP_MADDU: begin
+                if (cnt_i == 2'b00) begin
+                    hilo_temp_o <= mul_res;
+                    cnt_o       <= 2'b01;
+                    hilo_temp1  <= {`ZeroWord, `ZeroWord};
+                    stallreq_for_madd_msub <= `Stop;
+                end
+                else begin
+                    if (cnt_i == 2'b01) begin
+                        hilo_temp_o <= {`ZeroWord, `ZeroWord};
+                        cnt_o       <= 2'b10;
+                        hilo_temp1  <= hilo_temp_i + {HI, LO};
+                        stallreq_for_madd_msub <= `NoStop;
+                    end
+                end
+            end
+            `EXE_OP_MSUB, `EXE_OP_MSUBU: begin
+                if (cnt_i == 2'b00) begin
+                    hilo_temp_o <= ~mul_res + 1;
+                    cnt_o       <= 2'b01;
+                    hilo_temp1  <= {`ZeroWord, `ZeroWord};
+                    stallreq_for_madd_msub <= `Stop;
+                end
+                else begin
+                    if (cnt_i == 2'b01) begin
+                        hilo_temp_o <= {`ZeroWord, `ZeroWord};
+                        cnt_o       <= 2'b10;
+                        hilo_temp1  <= hilo_temp_i + {HI, LO};
+                        stallreq_for_madd_msub <= `NoStop;
+                    end
+                end
+            end  
+            default: begin
+                hilo_temp_o <= {`ZeroWord, `ZeroWord};
+                cnt_o       <= 2'b00;
+                stallreq_for_madd_msub <= `NoStop;
             end
         endcase
     end
@@ -217,8 +286,8 @@ end
 
 // Phase 3, multiplication
 // If signed multiplication and oprand is negtive, get it's 2's complement
-assign opdata1_mult = (((aluop_i == `EXE_OP_MULT) || (aluop_i == `EXE_OP_MUL)) && (reg1_data_i[31])) ? (~reg1_data_i + 1) : reg1_data_i;
-assign opdata2_mult = (((aluop_i == `EXE_OP_MULT) || (aluop_i == `EXE_OP_MUL)) && (reg2_data_i[31])) ? (~reg2_data_i + 1) : reg2_data_i;
+assign opdata1_mult = (((aluop_i == `EXE_OP_MULT) || (aluop_i == `EXE_OP_MUL) || (aluop_i == `EXE_OP_MADD) || (aluop_i == `EXE_OP_MSUB)) && (reg1_data_i[31])) ? (~reg1_data_i + 1) : reg1_data_i;
+assign opdata2_mult = (((aluop_i == `EXE_OP_MULT) || (aluop_i == `EXE_OP_MUL) || (aluop_i == `EXE_OP_MADD) || (aluop_i == `EXE_OP_MSUB)) && (reg2_data_i[31])) ? (~reg2_data_i + 1) : reg2_data_i;
 // Get temporary result
 assign hilo_temp    = opdata1_mult * opdata2_mult;
 // Correction of temporary result
@@ -226,7 +295,7 @@ always @(*) begin
     if (rst == `RstEnable)
         mul_res <= {`ZeroWord, `ZeroWord};
     else begin
-        if ((aluop_i == `EXE_OP_MULT) || (aluop_i == `EXE_OP_MUL)) begin
+        if ((aluop_i == `EXE_OP_MULT) || (aluop_i == `EXE_OP_MUL) || (aluop_i == `EXE_OP_MADD) || (aluop_i == `EXE_OP_MSUB)) begin
             if (reg1_data_i[31] ^ reg2_data_i[31])
                 mul_res <= ~hilo_temp + 1;
             else
@@ -241,11 +310,11 @@ end
 
 always @(*) begin
     waddr_o <= waddr_i;
-    if (((aluop_i == `EXE_OP_ADD) || (aluop_i == `EXE_OP_SUB)) && ov_sum) begin  // If overflow, no data is written
-        wreg_o <= `WriteDisable;
+    if (((aluop_i == `EXE_OP_ADD) || (aluop_i == `EXE_OP_SUB)) && ov_sum) begin // If overflow, no data is written
+        wreg_o <= `WriteDisable;                                                // Only ADD/SUB can cause overflow, ADDU/SUBU can't
     end
     else begin
-        wreg_o <= wreg_i;                                                   // Normal write
+        wreg_o <= wreg_i;                                                       // Normal write
     end
     case (alusel_i)
         `EXE_RES_LOGIC: wdata_o <= logic_res;

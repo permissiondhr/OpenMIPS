@@ -10,6 +10,8 @@ module mem_wb (
     input   wire                mem_whilo,
     input   wire[`RegDataBus]   mem_hi,
     input   wire[`RegDataBus]	mem_lo,
+    // Input from ctrl module
+    input   wire[5:0]           stall,
     // Outputs to wb module
     output  reg                 wb_wreg,
     output  reg [`RegAddrBus]   wb_waddr,
@@ -26,15 +28,27 @@ always @ (posedge clk) begin
         wb_wdata   <= `ZeroWord;
         wb_whilo   <= `WriteDisable;
         wb_hi      <= `ZeroWord;
-        wb_lo      <= `ZeroWord;	
+        wb_lo      <= `ZeroWord;
     end 
     else begin
-        wb_waddr   <= mem_waddr;
-        wb_wreg    <= mem_wreg;
-        wb_wdata   <= mem_wdata;
-        wb_whilo   <= mem_whilo;
-        wb_hi      <= mem_hi;
-        wb_lo      <= mem_lo;
+        if (stall[4] == `Stop && stall[5] == `NoStop) begin // Pass NOP instruction
+            wb_waddr   <= `NOPRegAddr;
+            wb_wreg    <= `WriteDisable;
+            wb_wdata   <= `ZeroWord;
+            wb_whilo   <= `WriteDisable;
+            wb_hi      <= `ZeroWord;
+            wb_lo      <= `ZeroWord;
+        end
+        else begin
+            if (stall[4] == `NoStop) begin                  // Normal
+                wb_waddr   <= mem_waddr;
+                wb_wreg    <= mem_wreg;
+                wb_wdata   <= mem_wdata;
+                wb_whilo   <= mem_whilo;
+                wb_hi      <= mem_hi;
+                wb_lo      <= mem_lo;
+            end
+        end                                                 // Hold current value
     end
 end
 

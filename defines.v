@@ -69,7 +69,7 @@
 // 000      SPECIAL REGIMM  J       JAL     BEQ     BNE     BLEZ    BGTZ
 // 001      ADDI    ADDIU   SLTI    SLTIU   ANDI    ORI     XORI    LUI
 // 010
-// 011                              SPECIAL2
+// 011                                      SPECIAL2
 // 100      LB      LH      LWL     LW      LBU     LHU     LWR
 // 101      SB      SH      SWL     SW                      SWR
 // 110                              PREF
@@ -136,7 +136,7 @@
 // Instructions encoded by FUNCTION field when OPCODE=SPECIAL2
 // 2:0      000     001     010     011     100     101     110     111
 // 5:3
-// 000                      MUL
+// 000      MADD    MADDU   MUL             MSUB    MSUBU
 // 001      
 // 010      
 // 011      
@@ -146,7 +146,11 @@
 // 111
 `define EXE_CLZ             6'b100000   // Count Leading Zeros
 `define EXE_CLO             6'b100001   // Count Leading Ones
-`define EXE_MUL             6'b000010   // Multipy Word to GPR
+`define EXE_MUL             6'b000010   // Multiply Word to GPR
+`define EXE_MADD            6'b000000   // Multiply and Add Word to Hi, Lo
+`define EXE_MADDU           6'b000001
+`define EXE_MSUB            6'b000100
+`define EXE_MSUBU           6'b000101
 
 // AluSel
 `define EXE_RES_NOP         3'b000
@@ -187,3 +191,7 @@
 `define EXE_OP_CLZ          8'b11100000 // {2'b11, EXE_CLZ}
 `define EXE_OP_CLO          8'b11100001 // {2'b11, EXE_CLO}
 `define EXE_OP_MUL          8'b11000010 // {2'b11, EXE_MUL}
+`define EXE_OP_MADD         8'b11000000
+`define EXE_OP_MADDU        8'b11000001
+`define EXE_OP_MSUB         8'b11000100
+`define EXE_OP_MSUBU        8'b11000101
