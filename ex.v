@@ -34,7 +34,15 @@ module ex (
     output  reg [`DoubleRegDataBus] hilo_temp_o,
     output  reg [1:0]           cnt_o,
     // Output to ctrl module
-    output  reg                 stallreq
+    output  reg                 stallreq,
+    // Inputs/outputs of div module
+    output  reg                 div_signed_o,
+    output  reg [`RegDataBus]   div_opdata1_o,
+    output  reg [`RegDataBus]   div_opdata2_o,
+    output  reg                 div_start_o,
+    //output  reg                 div_annul_o,        // Cancel division operation
+    input   wire[`DoubleRegDataBus] div_result_i,
+    input   wire                div_ready_i
 );
 
 reg [`RegDataBus] logic_res;    // Store logic arithmetic result
@@ -53,13 +61,14 @@ wire[`RegDataBus] opdata2_mult;
 wire[`DoubleRegDataBus] hilo_temp;
 reg [`DoubleRegDataBus] hilo_temp1;             // Used in Second clk cycle of MADD/MSUB instructions
 reg                     stallreq_for_madd_msub;
+reg                     stallreq_for_div;
 wire              ov_sum;       // Store overflow information
 wire              reg1_eq_reg2; // Oprand1 equals oprand2
 wire              reg1_lt_reg2; // Oprand1 less than oprand2
 
 
 always @(*) begin
-    stallreq <= stallreq_for_madd_msub;
+    stallreq <= stallreq_for_madd_msub || stallreq_for_div;
 end
 
 /******************** Do the computation according to aluop_i ********************/
@@ -162,6 +171,11 @@ always @(*) begin
                 hi_o    <= hilo_temp1[63:32];
                 lo_o    <= hilo_temp1[31: 0];
             end
+            `EXE_OP_DIV, `EXE_OP_DIVU: begin
+                whilo_o <= `WriteEnable;
+                hi_o    <= div_result_i[63:32];
+                lo_o    <= div_result_i[31: 0];
+            end
             default: begin              // Write disable, HI/LO stays the same
                 whilo_o <= `WriteDisable;
                 hi_o    <= `ZeroWord;
@@ -216,6 +230,60 @@ always @(*) begin
                 hilo_temp_o <= {`ZeroWord, `ZeroWord};
                 cnt_o       <= 2'b00;
                 stallreq_for_madd_msub <= `NoStop;
+            end
+        endcase
+    end
+end
+
+// DIV/DIVU
+always @(* ) begin
+    if (rst == `RstEnable) begin
+        stallreq_for_div<= `NoStop;
+        div_opdata1_o   <= `ZeroWord;
+        div_opdata2_o   <= `ZeroWord;
+        div_start_o     <= `DivStop;
+        div_signed_o    <= 1'b0;
+    end
+    else begin
+        case (aluop_i)
+            `EXE_OP_DIV: begin
+                if (div_ready_i == `DivResultNotReady) begin
+                    stallreq_for_div<= `Stop;
+                    div_opdata1_o   <= reg1_data_i;
+                    div_opdata2_o   <= reg2_data_i;
+                    div_start_o     <= `DivStart;
+                    div_signed_o    <= 1'b1;
+                end
+                else begin
+                    stallreq_for_div<= `NoStop;
+                    div_opdata1_o   <= reg1_data_i;
+                    div_opdata2_o   <= reg2_data_i;
+                    div_start_o     <= `DivStop;
+                    div_signed_o    <= 1'b1;
+                end
+            end
+            `EXE_OP_DIVU: begin
+                if (div_ready_i == `DivResultNotReady) begin
+                    stallreq_for_div<= `Stop;
+                    div_opdata1_o   <= reg1_data_i;
+                    div_opdata2_o   <= reg2_data_i;
+                    div_start_o     <= `DivStart;
+                    div_signed_o    <= 1'b0;
+                end
+                else begin
+                    stallreq_for_div<= `NoStop;
+                    div_opdata1_o   <= reg1_data_i;
+                    div_opdata2_o   <= reg2_data_i;
+                    div_start_o     <= `DivStop;
+                    div_signed_o    <= 1'b0;
+                end
+            end
+            default: begin
+                stallreq_for_div<= `NoStop;
+                div_opdata1_o   <= `ZeroWord;
+                div_opdata2_o   <= `ZeroWord;
+                div_start_o     <= `DivStop;
+                div_signed_o    <= 1'b0;
             end
         endcase
     end

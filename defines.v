@@ -41,6 +41,15 @@
 `define RegNumLog2          5
 `define NOPRegAddr          5'b00000    // If no need for read regfile in id stage, output address is NOPRegAddr
 
+// Defines in DIV module
+`define DivFree             2'b00
+`define DivByZero           2'b01
+`define DivOn               2'b10
+`define DivEnd              2'b11
+`define DivResultNotReady   1'b0
+`define DivResultReady      1'b1
+`define DivStart            1'b1
+`define DivStop             1'b0
 // CPU Instrction Formats
 
 // I-type (Immediate)
@@ -115,6 +124,8 @@
 `define EXE_MTLO            6'b010011
 `define EXE_MULT            6'b011000   // Multiply Word
 `define EXE_MULTU           6'b011001   // Multiply Unsigned Word
+`define EXE_DIV             6'b011010
+`define EXE_DIVU            6'b011011
 `define EXE_ADD             6'b100000   // Arithmetic instructions
 `define EXE_ADDU            6'b100001
 `define EXE_SUB             6'b100010
@@ -159,6 +170,7 @@
 `define EXE_RES_MOVE        3'b011
 `define EXE_RES_ARITHMETIC  3'b100
 `define EXE_RES_MUL         3'b101
+`define EXE_RES_DIV         3'b110
 
 // AluOp
 `define EXE_OP_NOP          8'b00000000
@@ -176,6 +188,8 @@
 
 `define EXE_OP_MULT         8'b00011000
 `define EXE_OP_MULTU        8'b00011001
+`define EXE_OP_DIV          8'b00011010
+`define EXE_OP_DIVU         8'b00011011
 `define EXE_OP_ADD          8'b00100000
 `define EXE_OP_ADDU         8'b00100001
 `define EXE_OP_SUB          8'b00100010

@@ -74,6 +74,14 @@ wire[`RegDataBus]   lo_data;
 wire        stallreq_from_id;
 wire        stallreq_from_ex;
 wire [5:0]  stall;
+// div module
+wire                div_signed;
+wire[`RegDataBus]   div_opdata1;
+wire[`RegDataBus]   div_opdata2;
+wire                div_start;
+//wire                annul_i;
+wire[`DoubleRegDataBus] div_result;
+wire                div_ready;
 
 pc_reg pc_reg0(
     .clk    (clk),
@@ -207,7 +215,14 @@ ex ex0(
     .cnt_i      (ex_cnt_i),
     .hilo_temp_o(ex_hilo_o),
     .cnt_o      (ex_cnt_o),
-    .stallreq   (stallreq_from_ex)
+    .stallreq   (stallreq_from_ex),
+    // DIV module
+    .div_signed_o   (div_signed),
+    .div_opdata1_o  (div_opdata1),
+    .div_opdata2_o  (div_opdata2),
+    .div_start_o    (div_start),
+    .div_result_i   (div_result),
+    .div_ready_i    (div_ready)
 );
 
 ex_mem ex_mem0(
@@ -280,6 +295,18 @@ ctrl ctrl0(
     .stallreq_from_id   (stallreq_from_id),
     .stallreq_from_ex   (stallreq_from_ex),
     .stall              (stall) 
+);
+
+div div0(
+    .clk            (clk),
+    .rst            (rst),
+    .signed_div_i   (div_signed),
+    .opdata1_i      (div_opdata1),
+    .opdata2_i      (div_opdata2),
+    .start_i        (div_start),
+    .annul_i        (1'b0),
+    .result_o       (div_result),
+    .ready_o        (div_ready)
 );
 
 endmodule

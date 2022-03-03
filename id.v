@@ -238,6 +238,24 @@ always @ (*) begin
                             wreg_o      <= `WriteDisable;
                         end
                     end
+                    `EXE_DIV: begin                                 // This instruction do not write GPR, so alusel=NOP
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_DIV;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteDisable;
+                        end
+                    end
+                    `EXE_DIVU: begin                                // This instruction do not write GPR, so alusel=NOP
+                        if ({op_rd, op_sa} == 10'h000) begin
+                            aluop_o     <= `EXE_OP_DIVU;
+                            reg1_read_o <= `ReadEnable;
+                            reg2_read_o <= `ReadEnable;
+                            inst_valid  <= `InstValid;
+                            wreg_o      <= `WriteDisable;
+                        end
+                    end
                     `EXE_ADD: begin
                         if (op_sa == 5'h00) begin
                             alusel_o    <= `EXE_RES_ARITHMETIC;
