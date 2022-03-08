@@ -82,12 +82,24 @@ wire                div_start;
 //wire                annul_i;
 wire[`DoubleRegDataBus] div_result;
 wire                div_ready;
+// Branch signal
+wire                branch_flag;
+wire[`RegDataBus]   branch_target_address;
+wire                id_is_in_delayslot_o;       
+wire[`RegDataBus]   id_link_addr_o;             
+wire                id_next_inst_in_delayslot_o;
+wire                id_is_in_delayslot_i;
+wire                ex_is_in_delayslot_i;
+wire[`RegDataBus]   ex_link_address_i;
 
 pc_reg pc_reg0(
     .clk    (clk),
     .rst    (rst),
     // Input from ctrl module
     .stall  (stall),
+    // Branch signal
+    .branch_flag_i          (branch_flag),
+    .branch_target_address_i(branch_target_address),
     // Outputs to ROM
     .pc     (pc),
     .ce     (rom_ce_o)		
@@ -135,7 +147,14 @@ id id0(
     .reg2_data_o(id_reg2_o),
     .waddr_o    (id_waddr_o),
     .wreg_o     (id_wreg_o),
-    .stallreq   (stallreq_from_id)
+    .stallreq   (stallreq_from_id),
+    // Branch signal
+    .branch_flag_o              (branch_flag),
+    .branch_target_address_o    (branch_target_address),
+    .is_in_delayslot_o          (id_is_in_delayslot_o),
+    .link_addr_o                (id_link_addr_o),
+    .next_inst_in_delayslot_o   (id_next_inst_in_delayslot_o),
+    .is_in_delayslot_i          (id_is_in_delayslot_i)
 );
 
 regfile regfile1(
@@ -182,7 +201,14 @@ id_ex id_ex0(
     .ex_reg1_data(ex_reg1_i),
     .ex_reg2_data(ex_reg2_i),
     .ex_waddr   (ex_waddr_i),
-    .ex_wreg    (ex_wreg_i)
+    .ex_wreg    (ex_wreg_i),
+    // Branch signal
+    .id_is_in_delayslot         (id_is_in_delayslot_o),
+    .id_link_address            (id_link_addr_o),
+    .next_inst_in_delayslot_i   (id_next_inst_in_delayslot_o),
+    .ex_is_in_delayslot         (ex_is_in_delayslot_i),
+    .ex_link_address            (ex_link_address_i),
+    .is_in_delayslot_o          (id_is_in_delayslot_i)
 );		
 
 ex ex0(
@@ -222,7 +248,10 @@ ex ex0(
     .div_opdata2_o  (div_opdata2),
     .div_start_o    (div_start),
     .div_result_i   (div_result),
-    .div_ready_i    (div_ready)
+    .div_ready_i    (div_ready),
+    .link_addr_i        (ex_link_address_i),
+    .is_in_delayslot_i  (ex_is_in_delayslot_i)
+    
 );
 
 ex_mem ex_mem0(

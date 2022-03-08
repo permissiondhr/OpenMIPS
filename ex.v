@@ -42,7 +42,10 @@ module ex (
     output  reg                 div_start_o,
     //output  reg                 div_annul_o,        // Cancel division operation
     input   wire[`DoubleRegDataBus] div_result_i,
-    input   wire                div_ready_i
+    input   wire                div_ready_i,
+    // Branch signals
+    input   wire[`RegDataBus]   link_addr_i,
+    input   wire                is_in_delayslot_i
 );
 
 reg [`RegDataBus] logic_res;    // Store logic arithmetic result
@@ -390,6 +393,7 @@ always @(*) begin
         `EXE_RES_MOVE:  wdata_o <= move_res;
         `EXE_RES_ARITHMETIC: wdata_o <= arithmetic_res;
         `EXE_RES_MUL:   wdata_o <= mul_res;
+        `EXE_RES_JUMP_BRANCH: wdata_o <= link_addr_i;
         default: wdata_o <= `ZeroWord;
     endcase
 end

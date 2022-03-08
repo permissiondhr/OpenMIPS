@@ -85,8 +85,12 @@
 // 111
 `define EXE_SPECIAL_INST    6'b000000
 `define EXE_REGIMM_INST     6'b000001
-`define EXE_J               6'b000010
+`define EXE_J               6'b000010   // Jump
 `define EXE_JAL             6'b000011
+`define EXE_BEQ             6'b000100   // Branch
+`define EXE_BNE             6'b000101
+`define EXE_BLEZ            6'b000110
+`define EXE_BGTZ            6'b000111
 `define EXE_ADDI            6'b001000   // Arithmetic instructions
 `define EXE_ADDIU           6'b001001
 `define EXE_SLTI            6'b001010   // Set On Less Than
@@ -184,6 +188,7 @@
 `define EXE_RES_ARITHMETIC  3'b100
 `define EXE_RES_MUL         3'b101
 `define EXE_RES_DIV         3'b110
+`define EXE_RES_JUMP_BRANCH 3'b111
 
 // AluOp
 `define EXE_OP_NOP          8'b00000000
@@ -191,6 +196,8 @@
 `define EXE_OP_SLL          8'b00000000
 `define EXE_OP_SRL          8'b00000010
 `define EXE_OP_SRA          8'b00000011
+//`define EXE_OP_JR           8'b00001000
+//`define EXE_OP_JALR         8'b00001001
 `define EXE_OP_MOVZ         8'b00001010
 `define EXE_OP_MOVN         8'b00001011
 `define EXE_OP_SYNC         8'b00001111
