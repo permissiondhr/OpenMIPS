@@ -85,6 +85,8 @@
 // 111
 `define EXE_SPECIAL_INST    6'b000000
 `define EXE_REGIMM_INST     6'b000001
+`define EXE_J               6'b000010
+`define EXE_JAL             6'b000011
 `define EXE_ADDI            6'b001000   // Arithmetic instructions
 `define EXE_ADDIU           6'b001001
 `define EXE_SLTI            6'b001010   // Set On Less Than
@@ -115,6 +117,8 @@
 `define EXE_SLLV            6'b000100 
 `define EXE_SRLV            6'b000110 
 `define EXE_SRAV            6'b000111
+`define EXE_JR              6'b001000
+`define EXE_JALR            6'b001001
 `define EXE_MOVZ            6'b001010   // Move instructions
 `define EXE_MOVN            6'b001011
 `define EXE_SYNC            6'b001111   // Sync instructions
@@ -140,9 +144,18 @@
 // Instructions encoded by RT field when OPCODE=REGIMM
 // 18:16    000     001     010     011     100     101     110     111
 // 20:19
-// 00      
-// 01      
-// 10
+// 00       BLTZ    BGEZ    BLTZL   BGEZL
+// 01             
+// 10       BLTZAL  BGEZAL  BLTZALL BGEZALL
+// 11
+`define EXE_BLTZ            5'b00000
+`define EXE_BGEZ            5'b00001
+`define EXE_BLTZL           5'b00010
+`define EXE_BGEZL           5'b00011
+`define EXE_BLTZAL          5'b10000
+`define EXE_BGEZAL          5'b10001
+`define EXE_BLTZALL         5'b10010
+`define EXE_BGEZALL         5'b10100
 
 // Instructions encoded by FUNCTION field when OPCODE=SPECIAL2
 // 2:0      000     001     010     011     100     101     110     111
